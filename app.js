@@ -2,19 +2,24 @@
 const express = require("express");
 const cors = require('cors');
 const db = require("./db/models");
+const { generateUploadURL } = require('./s3');
 
-// Chamar a função express
 const app = express();
+
+// Middleware para permitir o CORS
+app.use(cors());
 
 // Criar o middleware para receber os dados no corpo da requisição
 app.use(express.json());
 
-// Middleware para permitir o CORS
-app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE");
-    res.header("Access-Control-Allow-Headers", "Content-Type");
-    next();
+app.get('/s3Url', async (req, res) => {
+    try {
+        const url = await generateUploadURL();
+        res.json({ url });
+    } catch (error) {
+        console.error('Error generating S3 signed URL:', error);
+        res.status(500).json({ error: 'Failed to generate S3 signed URL' });
+    }
 });
 
 // Testar conexão com banco de dados
@@ -33,6 +38,7 @@ db.sequelize.authenticate()
 
 // Incluir as CONTROLLERS
 const users = require("./controllers/users");
-
+const books = require("./controllers/books");
 // Criar as rotas
 app.use('/', users);
+app.use('/', books);

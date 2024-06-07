@@ -1,11 +1,42 @@
-// Incluir as bibliotecas
-// Gerencia as requisições, rotas e URLs, entre outra funcionalidades
 const express = require("express");
-// Chamar a função express
 const router = express.Router();
-// Incluir o arquivo que possui a conexão com banco de dados
 const db = require('./../db/models');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
+// Configuração do JWT
+const jwtSecret = 'seuSegredoJWT'; // Certifique-se de usar um segredo seguro e armazená-lo em variáveis de ambiente
+
+// Rota de login
+router.post("/login", async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+        // Buscar usuário por email
+        const user = await db.Users.findOne({ where: { email } });
+        
+        if (!user) {
+            return res.status(404).json({ mensagem: "Usuário não encontrado!" });
+        }
+
+        // Verificar senha
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) {
+            return res.status(400).json({ mensagem: "Senha incorreta!" });
+        }
+
+        // Gerar token JWT
+        const token = jwt.sign({ id: user.id }, jwtSecret, { expiresIn: '1h' });
+
+        // Retornar token ao cliente
+        return res.json({ token });
+
+    } catch (error) {
+        console.error("Erro ao fazer login:", error);
+        return res.status(500).json({ mensagem: "Erro ao fazer login" });
+    }
+});
 // Criar a rota listar 
 // Endereço para acessar através da aplicação externa: http://localhost:8080/users?page=3
 router.get("/users", async (req, res) => {
