@@ -113,6 +113,25 @@ router.get("/users", async (req, res) => {
     }
 });
 
+router.get("/users/me", async (req, res) => {
+    const token = req.headers.authorization.split(' ')[1];
+    try {
+        const decoded = jwt.verify(token, jwtSecret);
+        const user = await db.Users.findOne({
+            where: { id: decoded.id },
+            attributes: ['id', 'name', 'email'],
+        });
+        if (!user) {
+            return res.status(404).json({ mensagem: "Usuário não encontrado!" });
+        }
+        return res.json({ user });
+    } catch (error) {
+        console.error("Erro ao buscar dados do usuário:", error);
+        return res.status(401).json({ mensagem: "Não autorizado" });
+    }
+});
+
+
 // Criar a rota visualizar e receber o parâmentro id enviado na URL 
 // Endereço para acessar através da aplicação externa: http://localhost:8080/users/7
 router.get("/users/:id", async (req, res) => {
