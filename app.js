@@ -1,4 +1,4 @@
-// Incluir as bibliotecas
+// app.js (ou server.js)
 const express = require("express");
 const cors = require('cors');
 const db = require("./db/models");
@@ -39,6 +39,9 @@ db.sequelize.authenticate()
 // Incluir as CONTROLLERS
 const users = require("./controllers/users");
 const books = require("./controllers/books");
+const emprestimos = require("./controllers/emprestimos");
+
 // Criar as rotas
 app.use('/', users);
 app.use('/', books);
+app.use('/', emprestimos);
